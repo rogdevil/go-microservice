@@ -1,26 +1,56 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"time"
+
+	"github.com/rogdevil/handler"
 )
 
 func main() {
-	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		log.Println("hello world")
-	})
 
-	http.HandleFunc("/goodboi", func(rw http.ResponseWriter, r *http.Request) {
-		data, err := ioutil.ReadAll(r.Body)
+	l := log.New(os.Stdout, "product-api", log.LstdFlags)
+
+	// create handlers
+	nh := handler.NewHello(l)
+
+	// custom server mux
+	sm := http.NewServeMux()
+	sm.Handle("/", nh)
+
+	s := http.Server{
+		Addr:         "0.0.0.0:8080",
+		Handler:      sm,
+		ErrorLog:     l,
+		ReadTimeout:  2 * time.Second,
+		WriteTimeout: 2 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+
+	go func() {
+		l.Println("starting server at http://localhost:8080")
+
+		err := s.ListenAndServe()
 
 		if err != nil {
-			http.Error(rw, "morty its a error", http.StatusBadRequest)
-			return
+			l.Printf("there is an error %s \n", err)
+			os.Exit(1)
 		}
+	}()
 
-		fmt.Fprintf(rw, "hello mother fucker %s", data)
-	})
-	http.ListenAndServe("0.0.0.0:8080", nil)
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Kill)
+
+	sig := <-c
+
+	log.Panicln("Got signal:", sig)
+
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	s.Shutdown(ctx)
+
 }
