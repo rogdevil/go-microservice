@@ -17,10 +17,12 @@ func main() {
 
 	// create handlers
 	nh := handler.NewHello(l)
+	ngb := handler.NewGoodBoi(l)
 
 	// custom server mux
 	sm := http.NewServeMux()
 	sm.Handle("/", nh)
+	sm.Handle("/goodboi", ngb)
 
 	s := http.Server{
 		Addr:         "0.0.0.0:8080",
