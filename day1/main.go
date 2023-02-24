@@ -16,13 +16,11 @@ func main() {
 	l := log.New(os.Stdout, "product-api", log.LstdFlags)
 
 	// create handlers
-	nh := handler.NewHello(l)
-	ngb := handler.NewGoodBoi(l)
+	nph := handler.NewProducts(l)
 
 	// custom server mux
 	sm := http.NewServeMux()
-	sm.Handle("/", nh)
-	sm.Handle("/goodboi", ngb)
+	sm.Handle("/", nph)
 
 	s := http.Server{
 		Addr:         "0.0.0.0:8080",
@@ -50,7 +48,7 @@ func main() {
 
 	sig := <-c
 
-	log.Panicln("Got signal:", sig)
+	log.Print("Got signal:", sig)
 
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	s.Shutdown(ctx)
