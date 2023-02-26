@@ -23,7 +23,7 @@ func main() {
 	sm.Handle("/", nph)
 
 	s := http.Server{
-		Addr:         "0.0.0.0:8080",
+		Addr:         "127.0.0.1:8080",
 		Handler:      sm,
 		ErrorLog:     l,
 		ReadTimeout:  2 * time.Second,
